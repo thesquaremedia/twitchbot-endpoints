@@ -45,17 +45,17 @@ add_action( 'rest_api_init', function () {
 /**
  * Current Raid Bosses endpoint callback.
  */
-function current_raid_boss( WP_REST_Request $request ) {
+function current_raid_boss( \WP_REST_Request $request ) {
 	header("Content-Type: text/plain");
 	$tier = $request['tier'];
 
 	// Get any existing copy of our transient data
 	if ( false === ( $current_raid_bosses_{$tier} = get_transient( "current_raid_bosses_$tier" ) ) ) {
     	// It wasn't there, so regenerate the data and save the transient
-		$dom = new DomDocument();
+		$dom = new \DomDocument();
 		libxml_use_internal_errors(true);
 		$dom->loadHTMLFile('https://leekduck.com/boss/');
-		$xpath = new DOMXpath($dom);
+		$xpath = new \DOMXpath($dom);
 
 		$elements = $xpath->query("//div[@id='raid-list']");
 
