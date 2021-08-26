@@ -1,6 +1,7 @@
 <?php
 /**
  * Plugin Name: Twitchbot Endpoints
+ * Version: 1.0.0
  */
 
 namespace Twichbot_Endpoints;
@@ -47,47 +48,57 @@ add_action( 'rest_api_init', function () {
 function current_raid_boss( WP_REST_Request $request ) {
 	header("Content-Type: text/plain");
 	$tier = $request['tier'];
-	$dom = new DomDocument();
-	libxml_use_internal_errors(true);
-	$dom->loadHTMLFile('https://leekduck.com/boss/');
-	$xpath = new DOMXpath($dom);
 
-	$elements = $xpath->query("//div[@id='raid-list']");
-	
-	if (!is_null($elements)) {
-		foreach ($elements as $element) {
-			
-			$nodes = $element->childNodes;
-			foreach ($nodes as $node) {
-				if ( ! is_node_empty( $node->nodeValue ) && $node->tagName === 'ul' ) {
-					ob_start(); 
-					recursive_node_output( $node );
-					$output = ob_get_clean();
-					
-					switch( $tier ) {
-						default:
-						case 'tier1':
-							$output = strstr( $output, 'Tier 1' . TWITCH_TIER_BOL );
-							$output = strstr( $output, 'Tier 3' . TWITCH_TIER_BOL, true );
-							break;
-						case 'tier3':
-							$output = strstr( $output, 'Tier 3' . TWITCH_TIER_BOL );
-							$output = strstr( $output, 'Tier 5' . TWITCH_TIER_BOL, true );
-							break;
-						case 'tier5':
-							$output = strstr( $output, 'Tier 5' . TWITCH_TIER_BOL );
-							$output = strstr( $output, 'Mega' . TWITCH_TIER_BOL, true );
-							break;
-						case 'mega':
-							$output = strstr( $output, 'Mega' );
-							$output = rtrim( $output, TWITCH_SPACER ) . TWITCH_TIER_EOL;
-							break;
+	// Get any existing copy of our transient data
+	if ( false === ( $current_raid_bosses_{$tier} = get_transient( "current_raid_bosses_$tier" ) ) ) {
+    	// It wasn't there, so regenerate the data and save the transient
+		$dom = new DomDocument();
+		libxml_use_internal_errors(true);
+		$dom->loadHTMLFile('https://leekduck.com/boss/');
+		$xpath = new DOMXpath($dom);
+
+		$elements = $xpath->query("//div[@id='raid-list']");
+
+		if (!is_null($elements)) {
+			foreach ($elements as $element) {
+
+				$nodes = $element->childNodes;
+				foreach ($nodes as $node) {
+					if ( ! is_node_empty( $node->nodeValue ) && $node->tagName === 'ul' ) {
+						ob_start(); 
+						recursive_node_output( $node );
+						$output = ob_get_clean();
+
+						switch( $tier ) {
+							default:
+							case 'tier1':
+								$output = strstr( $output, 'Tier 1' . TWITCH_TIER_BOL );
+								$output = strstr( $output, 'Tier 3' . TWITCH_TIER_BOL, true );
+								break;
+							case 'tier3':
+								$output = strstr( $output, 'Tier 3' . TWITCH_TIER_BOL );
+								$output = strstr( $output, 'Tier 5' . TWITCH_TIER_BOL, true );
+								break;
+							case 'tier5':
+								$output = strstr( $output, 'Tier 5' . TWITCH_TIER_BOL );
+								$output = strstr( $output, 'Mega' . TWITCH_TIER_BOL, true );
+								break;
+							case 'mega':
+								$output = strstr( $output, 'Mega' );
+								$output = rtrim( $output, TWITCH_SPACER ) . TWITCH_TIER_EOL;
+								break;
+						}
+
+						$output = trim( str_replace( TWITCH_SPACER . TWITCH_TIER_EOL, TWITCH_TIER_EOL, $output ) );
+						set_transient( "current_raid_bosses_$tier", $output, 2 * HOUR_IN_SECONDS );
+						echo $output;
 					}
-					
-					echo trim( str_replace( TWITCH_SPACER . TWITCH_TIER_EOL, TWITCH_TIER_EOL, $output ) );
 				}
 			}
 		}
+	} else {
+		// Use the data like you would have normally...
+		echo $current_raid_bosses_{$tier};
 	}
 }
 
