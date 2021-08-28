@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Twitchbot Endpoints
- * Version: 1.1.0
+ * Version: 1.2.0
  */
 
 namespace Twichbot_Endpoints;
@@ -43,6 +43,10 @@ add_action( 'rest_api_init', function () {
 	register_rest_route( 'twitchbots/v1', '/latest-pogo-news/', array(
 		'methods' => 'GET',
 		'callback' => __NAMESPACE__ . '\latest_pogo_news',
+	) );
+	register_rest_route( 'twitchbots/v1', '/latest-poke-news/', array(
+		'methods' => 'GET',
+		'callback' => __NAMESPACE__ . '\latest_poke_news',
 	) );
 } );
 
@@ -107,7 +111,7 @@ function current_raid_boss( \WP_REST_Request $request ) {
 }
 
 /**
- * Current Raid Bosses endpoint callback.
+ * Latest Pogo news endpoint callback.
  */
 function latest_pogo_news( \WP_REST_Request $request ) {
 	header("Content-Type: text/plain");
@@ -145,5 +149,59 @@ function latest_pogo_news( \WP_REST_Request $request ) {
 	} else {
 		// Use the data like you would have normally...
 		echo $latest_pogo_news_top_{$top};
+	}
+}
+
+/**
+ * Latest Pogo news endpoint callback.
+ */
+function latest_poke_news( \WP_REST_Request $request ) {
+	header("Content-Type: text/plain");
+	$poke_url = 'https://www.pokemon.com';
+	$poke_api_url = 'https://www.pokemon.com/us/api/news/';
+	$cat = ( !empty( $request['cat'] ) ) ? $request['cat'] : 'vg';
+	$top = ( !empty( $request['top'] ) ) ? absint( str_replace( array( 'top', 'Top', 'TOP' ), '' , $request['top'] ) ) : 1;
+	
+	if ( $top > 2 ) {
+		echo "WOW! slow down you can only request up to top 2 latest news.";
+	}
+
+	switch( $cat ){
+		default:
+		case 'vg':
+			$poke_api_url .= 'pokemon-video-games-news?index=0&count=' . $top;
+			break;
+		case 'tcg':
+			$poke_api_url .= 'pokemon-tcg-news?index=0&count=' . $top;
+			break;
+		case 'tv':
+			$poke_api_url .= 'pokemon-episodes-news?index=0&count=' . $top;
+	}
+	// Get any existing copy of our transient data
+	if ( false === ( $latest_poke_news_{$cat.'_top_'.$top} = get_transient( "latest_pogo_news_{$cat}_top_{$top}" ) ) ) {
+    	// It wasn't there, so regenerate the data and save the transient
+		$response = wp_remote_request( $poke_api_url,
+			array(
+				'method'     => 'GET'
+			)
+		);
+
+		$elements = json_decode(wp_remote_retrieve_body($response));
+		
+		if ( ! empty($elements) ) {
+			for( $i=0; $i < $top; $i++ ) {
+				$href = $poke_url . $elements[$i]->url;
+				$output = strip_tags( $elements[$i]->title ) . TWITCH_SUBELEMENT . $href;
+				if ( $top - 1 !== $i ) {
+					$output .= TWITCH_SPACER;
+				}
+				set_transient( "latest_poke_news_{$cat}_top_{$top}", $output, 2 * HOUR_IN_SECONDS );
+				echo $output;
+				
+			}
+		}
+	} else {
+		// Use the data like you would have normally...
+		echo $latest_poke_news_{$cat.'_top_'.$top};
 	}
 }
