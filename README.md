@@ -56,7 +56,7 @@ You can add a command like `!pokonews` and then set the message to.
 $(urlfetch https://pnx.world/wp-json/twitchbots/v1/latest-poke-news/?cat=$(eval if("$(1)" == 'null' ){ "vg"; }else{ "$(1)"; })&top=$(eval if("$(2)" == 'null' ){ "1"; }else{ "$(2)"; }))
 ```
 
-Command usage: `!pokonews` or `!pogonews tcg` or `!pogonews tv` or `!pogonews vg top2`. the endpoint will default to top 1 if the wrong/empty argument is passed. It limits at 2 do to character limit, there is the possibility of maybe using a url shortener to allow for more but not sure there is much usage in having really more than the top1. It also defaults to returning the video game news.
+Command usage: `!pokenews` or `!pokenews tcg` or `!pokenews tv` or `!pokenews vg top2`. the endpoint will default to top 1 if the wrong/empty argument is passed. It limits at 2 do to character limit, there is the possibility of maybe using a url shortener to allow for more but not sure there is much usage in having really more than the top1. It also defaults to returning the video game news.
 
 ### Screenshots
 
