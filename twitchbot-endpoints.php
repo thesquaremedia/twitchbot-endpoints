@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Twitchbot Endpoints
- * Version: 1.2.0
+ * Version: 1.3.0
  */
 
 namespace Twichbot_Endpoints;
@@ -39,6 +39,10 @@ add_action( 'rest_api_init', function () {
 	register_rest_route( 'twitchbots/v1', '/current-raid-boss/', array(
 		'methods' => 'GET',
 		'callback' => __NAMESPACE__ . '\current_raid_boss',
+	) );
+	register_rest_route( 'twitchbots/v1', '/current-ditto-disguises/', array(
+		'methods' => 'GET',
+		'callback' => __NAMESPACE__ . '\current_ditto_disguises',
 	) );
 	register_rest_route( 'twitchbots/v1', '/latest-pogo-news/', array(
 		'methods' => 'GET',
@@ -107,6 +111,38 @@ function current_raid_boss( \WP_REST_Request $request ) {
 	} else {
 		// Use the data like you would have normally...
 		echo $current_raid_bosses_{$tier};
+	}
+}
+
+/**
+ * Current Ditto Disguises endpoint callback.
+ */
+function current_ditto_disguises( \WP_REST_Request $request ) {
+	header("Content-Type: text/plain");
+
+	// Get any existing copy of our transient data
+	if ( false === ( $current_ditto_disguises = get_transient( "current_ditto_disguises" ) ) ) {
+    	// It wasn't there, so regenerate the data and save the transient
+		$dom = new \DomDocument();
+		libxml_use_internal_errors(true);
+		$dom->loadHTMLFile('https://leekduck.com/FindDitto/');
+		$xpath = new \DOMXpath($dom);
+
+		$elements = $xpath->query("//ul[contains(@class,'pkmn-list-flex')]//div[contains(@class,'pkmn-name')]");
+
+		if (!is_null($elements)) {
+			$output = '';
+			foreach ($elements as $element) {
+				if ( ! in_array( $element->nodeValue, array( 'ditto', 'Ditto' ), true ) ) {
+					$output .= $element->nodeValue . TWITCH_SPACER;
+				}
+			}
+			//set_transient( "current_ditto_disguises", $output, 8 * HOUR_IN_SECONDS );
+			echo rtrim( $output, TWITCH_SPACER );
+		}
+	} else {
+		// Use the data like you would have normally...
+		echo $current_ditto_disguises;
 	}
 }
 

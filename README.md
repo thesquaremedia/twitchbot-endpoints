@@ -32,6 +32,19 @@ Command usage: `!raidbosses tier1` or `!raidbosses tier3` or `!raidbosses tier5`
 
 ![Raid Bosses Command Twitch Example](/screenshots/raidbosses-command-example.png?raw=true "Raid Bosses Command Twitch Example")
 
+### Nightbot Ditto Command
+
+You can add a command like `!ditto` and then set the message to. keep in mind you can change the initial part of the message with anything you want that would apply to all the endpoints. just keep in mind the 400 character limit.
+```
+Currently Ditto is disguised as -> $(urlfetch https://pnx.world/wp-json/twitchbots/v1/current-ditto-disguises)
+```
+
+Command usage: `!ditto`
+
+### Screenshots
+
+![Ditto Command Twitch Example](/screenshots/ditto-command-example.png?raw=true "Ditto Command Twitch Example")
+
 ### Pogonews command endpoint
 
 the endpoint is `https://pnx.world/wp-json/twitchbots/v1/current-raid-boss/?tier=tier1` replace the domain if you are self-hosting it. 
@@ -49,9 +62,9 @@ Command usage: `!pogonews 1` or `!pogonews top1` or `!pogonews 2` or `!pogonews 
 
 ![Pogonews Command Twitch Example](/screenshots/pogonews-command-example.png?raw=true "Pogonews Command Twitch Example")
 
-### Nightbot Pokonews Command
+### Nightbot Pokenews Command
 
-You can add a command like `!pokonews` and then set the message to.
+You can add a command like `!pokenews` and then set the message to.
 ```
 $(urlfetch https://pnx.world/wp-json/twitchbots/v1/latest-poke-news/?cat=$(eval if("$(1)" == 'null' ){ "vg"; }else{ "$(1)"; })&top=$(eval if("$(2)" == 'null' ){ "1"; }else{ "$(2)"; }))
 ```
